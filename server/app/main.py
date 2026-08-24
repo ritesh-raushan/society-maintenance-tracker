@@ -5,6 +5,7 @@ from fastapi.responses import JSONResponse
 
 from app.auth.router import router as auth_router
 from app.categories import admin_router as categories_admin_router, public_router as categories_public_router
+from app.complaints import router as complaints_router
 from app.core.config import settings
 from app.core.errors import AppError, app_error_handler
 from app.database.session import engine
@@ -49,6 +50,7 @@ api_router = APIRouter(prefix="/api/v1")
 api_router.include_router(auth_router)
 api_router.include_router(categories_public_router)
 api_router.include_router(categories_admin_router)
+api_router.include_router(complaints_router)
 
 app.include_router(api_router)
 
