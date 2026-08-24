@@ -35,6 +35,34 @@ class ComplaintRead(BaseModel):
     is_overdue: bool = False
 
 
+class AdminComplaintRead(ComplaintRead):
+    resident: UserBrief
+
+
+class StatusUpdateRequest(BaseModel):
+    status: ComplaintStatus
+    note: str | None = None
+
+
+class PriorityUpdateRequest(BaseModel):
+    priority: ComplaintPriority
+
+
+class ComplaintStatusRead(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: uuid.UUID
+    status: ComplaintStatus
+    updated_at: datetime
+
+
+class ComplaintPriorityRead(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: uuid.UUID
+    priority: ComplaintPriority
+
+
 class StatusHistoryRead(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 

@@ -7,11 +7,10 @@ from sqlalchemy.orm import Session
 from app.auth.dependencies import get_current_active_user, require_resident
 from app.complaints.schemas import ComplaintRead, StatusHistoryRead
 from app.complaints.service import (
+    attach_overdue_flags,
     create_complaint,
     get_active_category_or_error,
     get_complaint_for_user,
-    get_overdue_threshold_days,
-    is_complaint_overdue,
     list_resident_complaints,
 )
 from app.database.session import get_db
@@ -21,8 +20,12 @@ from app.models import (
     ComplaintStatus,
     User,
 )
-from app.schemas.pagination import Page, pagination_params, run_paginated_query
-from app.schemas.pagination import build_page
+from app.schemas.pagination import (
+    Page,
+    build_page,
+    pagination_params,
+    run_paginated_query,
+)
 from app.uploads.service import upload_photo, validate_photo
 
 router = APIRouter(prefix="/complaints", tags=["complaints"])
@@ -33,16 +36,6 @@ SORT_COLUMNS = {
     "status": Complaint.status,
     "priority": Complaint.priority,
 }
-
-
-def _attach_overdue_flag(
-    complaints: list[Complaint],
-    db: Session,
-) -> None:
-    threshold = get_overdue_threshold_days(db)
-
-    for complaint in complaints:
-        complaint.is_overdue = is_complaint_overdue(complaint, threshold)
 
 
 @router.post("", response_model=ComplaintRead, status_code=201)
@@ -69,6 +62,8 @@ def create_new_complaint(
         photo_url=photo_url,
     )
 
+    attach_overdue_flags([complaint], db)
+
     return ComplaintRead(
         id=complaint.id,
         category=category,
@@ -79,10 +74,7 @@ def create_new_complaint(
         created_at=complaint.created_at,
         updated_at=complaint.updated_at,
         resolved_at=complaint.resolved_at,
-        is_overdue=is_complaint_overdue(
-            complaint,
-            get_overdue_threshold_days(db),
-        ),
+        is_overdue=complaint.is_overdue,
     )
 
 
@@ -110,7 +102,7 @@ def list_my_complaints(
     )
 
     items, total = run_paginated_query(db, stmt, page, page_size)
-    _attach_overdue_flag(list(items), db)
+    attach_overdue_flags(list(items), db)
 
     return build_page(items, total, page, page_size)
 
@@ -122,7 +114,7 @@ def get_complaint_detail(
     db: Session = Depends(get_db),
 ):
     complaint = get_complaint_for_user(db, complaint_id, user)
-    _attach_overdue_flag([complaint], db)
+    attach_overdue_flags([complaint], db)
 
     return complaint
 
