@@ -194,7 +194,7 @@ External service integrations are isolated from the core business logic so they 
 The backend will be organized into the following functional modules:
 
 ```text
-backend/app/
+server/app/
 
 ├── auth
 ├── users

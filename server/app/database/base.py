@@ -31,12 +31,3 @@ class BaseModel(Base):
         onupdate=func.now(),
         nullable=False,
     )
-
-from app.models import (
-    Category,
-    Complaint,
-    ComplaintStatusHistory,
-    Notice,
-    SystemSetting,
-    User,
-)
