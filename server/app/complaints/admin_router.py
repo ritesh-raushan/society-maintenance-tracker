@@ -1,8 +1,8 @@
 from datetime import date
 from typing import Literal
+from fastapi import APIRouter, BackgroundTasks, Depends
 
 import uuid
-from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 
 from app.auth.dependencies import get_current_admin
@@ -27,6 +27,7 @@ from app.models import (
     ComplaintStatus,
     User,
 )
+from app.notifications import send_complaint_status_email
 from app.schemas.pagination import (
     Page,
     build_page,
@@ -82,16 +83,29 @@ def list_all_complaints(
 def update_existing_complaint_status(
     complaint_id: uuid.UUID,
     payload: StatusUpdateRequest,
+    background_tasks: BackgroundTasks,
     admin: User = Depends(get_current_admin),
     db: Session = Depends(get_db),
 ):
     complaint = get_complaint_for_user(db, complaint_id, admin)
+
+    old_status = complaint.status
 
     complaint = update_complaint_status(
         db,
         complaint,
         new_status=payload.status,
         actor=admin,
+        note=payload.note,
+    )
+
+    send_complaint_status_email(
+        background_tasks,
+        recipient_email=complaint.resident.email,
+        recipient_name=complaint.resident.name,
+        complaint_id=str(complaint.id),
+        old_status=old_status.value,
+        new_status=payload.status.value,
         note=payload.note,
     )
 
