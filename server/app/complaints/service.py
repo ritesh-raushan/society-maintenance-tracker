@@ -11,29 +11,10 @@ from app.models import (
     ComplaintPriority,
     ComplaintStatus,
     ComplaintStatusHistory,
-    SystemSetting,
     User,
     UserRole,
 )
-
-OVERDUE_THRESHOLD_KEY = "overdue_threshold_days"
-DEFAULT_OVERDUE_THRESHOLD_DAYS = 3
-
-
-def get_overdue_threshold_days(db: Session) -> int:
-    setting = db.scalar(
-        select(SystemSetting).where(SystemSetting.key == OVERDUE_THRESHOLD_KEY),
-    )
-
-    if setting is None:
-        return DEFAULT_OVERDUE_THRESHOLD_DAYS
-
-    try:
-        days = int(setting.value)
-    except (TypeError, ValueError):
-        return DEFAULT_OVERDUE_THRESHOLD_DAYS
-
-    return days if days > 0 else DEFAULT_OVERDUE_THRESHOLD_DAYS
+from app.settings.service import get_overdue_threshold_days
 
 
 def is_complaint_overdue(

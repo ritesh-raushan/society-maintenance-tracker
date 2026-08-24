@@ -1,15 +1,13 @@
 from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
-from app.complaints.service import (
-    build_overdue_condition,
-    get_overdue_threshold_days,
-)
+from app.complaints.service import build_overdue_condition
 from app.models import (
     Category,
     Complaint,
     ComplaintStatus,
 )
+from app.settings.service import get_overdue_threshold_days
 
 
 def get_dashboard_stats(db: Session) -> dict:

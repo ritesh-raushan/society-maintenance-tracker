@@ -9,6 +9,7 @@ from app.complaints import admin_router as complaints_admin_router, public_route
 from app.core.config import settings
 from app.dashboard import router as dashboard_admin_router
 from app.notices import admin_router as notices_admin_router, public_router as notices_public_router
+from app.settings import router as settings_admin_router
 from app.users import router as users_admin_router
 from app.core.errors import AppError, app_error_handler
 from app.database.session import engine
@@ -59,6 +60,7 @@ api_router.include_router(users_admin_router)
 api_router.include_router(notices_public_router)
 api_router.include_router(notices_admin_router)
 api_router.include_router(dashboard_admin_router)
+api_router.include_router(settings_admin_router)
 
 app.include_router(api_router)
 
