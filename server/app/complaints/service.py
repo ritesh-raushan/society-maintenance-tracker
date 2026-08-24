@@ -232,6 +232,12 @@ def update_complaint_priority(
     return complaint
 
 
+def build_overdue_condition(threshold_days: int):
+    return (Complaint.status != ComplaintStatus.RESOLVED) & (
+        func.now() > Complaint.created_at + func.make_interval(0, 0, 0, threshold_days)
+    )
+
+
 def build_admin_list_stmt(
     db: Session,
     *,
@@ -260,9 +266,7 @@ def build_admin_list_stmt(
 
     threshold_days = get_overdue_threshold_days(db)
 
-    overdue_condition = (Complaint.status != ComplaintStatus.RESOLVED) & (
-        func.now() > Complaint.created_at + func.make_interval(0, 0, 0, threshold_days)
-    )
+    overdue_condition = build_overdue_condition(threshold_days)
 
     if is_overdue is True:
         stmt = stmt.where(overdue_condition)
